@@ -1,0 +1,49 @@
+task: &task cls
+
+train:
+  fp16: true
+  epoch: 100
+  batch_size: 16
+  num_workers: 8
+  gpu_index: 0
+  accum_grad_step: 5
+  task: *task
+  input_size: [ 512, 512 ]
+
+
+model:
+  seg:
+    model_type: Unet
+    hparams:
+      encoder_name: timm-mobilenetv3_large_100
+      encoder_weights: null
+      activation: identity
+      encoder_depth: 4
+      decoder_channels: [ 128, 64, 32, 16 ]
+      in_channels: 3
+      decoder_attention_type: null
+      decoder_use_batchnorm: true
+      classes: 22
+  cls:
+    model_type: resnet34
+    hparams:
+      classes: 11
+
+optimizer:
+  type: AdamW
+  params:
+    lr: 0.001
+    weight_decay: 0.0005
+
+scheduler:
+  type: CosineAnnealingLR
+  step_type: epoch
+  params:
+    T_max: 100
+    eta_min: 0.00001
+
+
+loss:
+  type: CrossEntropyLoss # BCEWithLogitsLoss
+  params:
+    reduction: mean
